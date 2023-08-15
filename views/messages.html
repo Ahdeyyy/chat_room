@@ -1,1 +1,9 @@
-<p class="px-4 py-2 mb-4 text-white bg-zinc-700 rounded-md">Htmx rawr rawr!</p>
+{{ range $index, $message := .messages}}
+
+<article id="{{ $message.Id }}" class="px-5 py-2 text-white mb-4 bg-zinc-700 rounded-md">
+    <p class="px-4 py-2 mb-2 text-gray-300">{{ $message.Sender }}</p>
+    <p class="px-4 py-2 mb-2 text-white">{{ $message.Content }}</p>
+    <p class="px-4 py-2 mb-2 text-gray-300">{{ $message.Created }}</p>
+</article>
+
+{{ end }}

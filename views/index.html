@@ -14,7 +14,7 @@
 
 <body class="container mx-auto p-4 bg-black text-white">
     <p class="bg-zinc-700 rounded-md shadow-lg px-4 py-2 mb-4 text-center font-semibold">{{ .User }}</p>
-    <div id="messages" class="mb-4">
+    <div hx-get="/messages" hx-trigger="every 200ms" id="messages" class="mb-4">
     </div>
     <form hx-on::after-request="this.reset()" hx-post="/new_message" hx-target="#messages"
         class="bg-zinc-700 rounded-md border grid grid-cols-5 text-white">
