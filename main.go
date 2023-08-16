@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"os"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -20,8 +21,13 @@ type Message struct {
 	Created time.Time
 }
 
+var connStr string
+
 func main() {
-	connStr := "postgres://ade:password@127.0.0.1:5432/chat?sslmode=disable"
+	connStr = os.Getenv("DATABASE_URL")
+	if connStr == "" {
+		connStr = "postgres://ade:password@127.0.0.1:5432/chat?sslmode=disable"
+	}
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		panic(err)
