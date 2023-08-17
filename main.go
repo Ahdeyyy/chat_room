@@ -3,7 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"log"
+
 	"math/rand"
 	"os"
 	"time"
@@ -21,6 +21,28 @@ type Message struct {
 	Created time.Time
 }
 
+type MessageData struct {
+	Messages []Message
+	Sender   string
+}
+
+func (m Message) IsSender(username string) bool {
+	return m.Sender == username
+}
+
+func (m Message) DateString() string {
+	server_time := time.Now().Local()
+	date := m.Created.In(server_time.Location())
+
+	if date.Day() == time.Now().Day() {
+		return date.Format("15:04")
+	}
+	if date.Year() == time.Now().Year() {
+		return date.Format("02 Jan 15:04")
+	}
+	return date.Format("02 Jan 2006 15:04")
+}
+
 var connStr string
 
 func main() {
@@ -32,6 +54,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	defer db.Close()
+
 	engine := html.New("./views", ".html")
 	app := fiber.New(fiber.Config{
 		Views: engine,
@@ -58,29 +82,39 @@ func main() {
 	app.Get("/messages", func(c *fiber.Ctx) error {
 		messages, e := getMessages(db)
 		if e != nil {
-			log.Println(e) // TODO: render an error dialog
+			return c.Render("error", fiber.Map{"message": "An error occured while fetching messages"})
 		}
 
-		return c.Render("messages", fiber.Map{"messages": messages})
+		data := MessageData{Messages: messages, Sender: c.Cookies("username")}
+
+		return c.Render("messages", fiber.Map{"data": data})
 
 	})
 
 	app.Post("/new_message", func(c *fiber.Ctx) error {
-		log.Println(c.FormValue("text"))
+		// log.Println(c.FormValue("text"))
 		content := c.FormValue("text")
 		sender := c.Cookies("username")
-		stmt := `INSERT into message("content","sender")
+
+		if content != "" && sender != "" {
+
+			stmt := `INSERT into message("content","sender")
 		VALUES($1,$2)
 		`
-		_, err = db.Exec(stmt, content, sender)
-		if err != nil {
-			log.Println(err)
+			_, err = db.Exec(stmt, content, sender)
+			if err != nil {
+				return c.Render("error", fiber.Map{"message": "An error occured while sending message"})
+
+			}
 		}
 		messages, err := getMessages(db)
 		if err != nil {
-			log.Println(err)
+			return c.Render("error", fiber.Map{"message": "An error occured while fetching messages"})
+
 		}
-		return c.Render("messages", fiber.Map{"messages": messages})
+
+		data := MessageData{Messages: messages, Sender: c.Cookies("username")}
+		return c.Render("messages", fiber.Map{"data": data})
 	})
 
 	app.Listen(":3000")
@@ -101,14 +135,13 @@ func getMessages(db *sql.DB) ([]Message, error) {
 		msg := Message{}
 		e = resultRows.Scan(&msg.Id, &msg.Content, &msg.Sender, &msg.Created)
 		if e != nil {
-			log.Println(e) //TODO: Render an error dialog
 			return nil, e
 		}
 		messages = append(messages, msg)
 	}
 
 	if err := resultRows.Err(); err != nil {
-		log.Println(err)
+
 		return nil, e
 	}
 	return messages, nil
@@ -118,7 +151,7 @@ func generateUsername() string {
 	seed := rand.NewSource(time.Now().UnixNano())
 	gen := rand.New(seed)
 
-	username := fmt.Sprintf("anon%d%d%d%d%d%d%d", gen.Intn(10), gen.Intn(10), gen.Intn(10), gen.Intn(10), gen.Intn(10), gen.Intn(10), gen.Intn(10))
+	username := fmt.Sprintf("user%d%d%d%d%d%d%d", gen.Intn(10), gen.Intn(10), gen.Intn(10), gen.Intn(10), gen.Intn(10), gen.Intn(10), gen.Intn(10))
 	return username
 
 }

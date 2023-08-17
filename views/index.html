@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html data-theme="night" lang="en">
 
 <head>
     <script src="htmx.js"></script>
-
-    <script src="https://cdn.jsdelivr.net/npm/@unocss/runtime"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@3.5.1/dist/full.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
     <meta charset="utf-8">
 
     <meta name="viewport" content="width=device-width" />
@@ -12,17 +12,25 @@
     <title>chat</title>
 </head>
 
-<body class="container mx-auto p-4 bg-black text-white">
-    <p class="bg-zinc-700 rounded-md shadow-lg px-4 py-2 mb-4 text-center font-semibold">{{ .User }}</p>
-    <div hx-get="/messages" hx-trigger="every 200ms" id="messages" class="mb-4">
+<body class="container mx-auto p-1">
+    <p class="badge rounded-md shadow-lg px-4 py-2 mb-4 text-center font-semibold">{{ .User }}</p>
+    <div hx-get="/messages" hx-trigger="every 250ms" id="messages" class="mb-4">
     </div>
+    <div class="footer px-5 py-1 w-full" >
+
     <form hx-on::after-request="this.reset()" hx-post="/new_message" hx-target="#messages"
-        class="bg-zinc-700 rounded-md border grid grid-cols-5 text-white">
-        <input name="text" id="text" class="bg-zinc-700 text-white px-3 py-2 outline-none col-span-4"
-            type="textarea"></input>
-        <button hx-target="#messages" hx-post="/new_message"
-            class="bg-transparent text-white px-3 py-2 col-span-1">Send</button>
+        class="join w-full">
+        <input autocomplete="off" name="text" id="text" class="input input-bordered w-full join-item" type="textarea"></input>
+        <button hx-target="#messages" hx-post="/new_message" class="join-item btn btn-ghost"><svg
+                xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                class="lucide lucide-send-horizontal">
+                <path d="m3 3 3 9-3 9 19-9Z" />
+                <path d="M6 12h16" />
+            </svg></button>
     </form>
+</div>
+
 </body>
 
 </html>
